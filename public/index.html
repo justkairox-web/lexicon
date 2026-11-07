@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0d0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lexicon">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Lexicon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0d0f; --surface:#141417; --line:rgba(255,255,255,.09);
+  --ink:#e9e6df; --dim:#8c8982; --faint:#55534f;
+  --accent:#cdb892; --good:#9bbf9b; --bad:#c98b86;
+  /* Swap these two lines when you pick your own font */
+  --serif:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans:'Inter', -apple-system, system-ui, 'Segoe UI', sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:300;-webkit-font-smoothing:antialiased}
+button,input,textarea{font-family:inherit}
+#app{max-width:560px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 14px) 20px 8px}
+.brand{font-family:var(--serif);font-size:28px;font-weight:300;letter-spacing:.02em}
+.brand i{color:var(--accent)}
+#gear{background:none;border:0;color:var(--dim);padding:8px;margin-right:-8px;cursor:pointer}
+#gear svg{display:block;width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.2}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:24px;animation:in .25s ease}
+@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+#tabs{display:flex;border-top:1px solid var(--line);padding:2px 8px calc(env(safe-area-inset-bottom) + 2px);background:var(--bg)}
+#tabs button{flex:1;background:none;border:0;color:var(--dim);font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:14px 0 10px;cursor:pointer}
+#tabs button::after{content:'';display:block;width:14px;height:1px;background:transparent;margin:7px auto 0}
+#tabs button.on{color:var(--ink)}
+#tabs button.on::after{background:var(--accent)}
+.inquiz #tabs{display:none}
+
+.pad{padding:4px 20px 0}
+.meta{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:14px 0 8px}
+.meta.gap{margin-top:36px}
+.line{width:100%;background:transparent;border:0;border-bottom:1px solid var(--line);color:var(--ink);font-size:16px;font-weight:300;padding:12px 0;outline:none;border-radius:0;resize:none;-webkit-appearance:none;appearance:none}
+.line:focus{border-color:var(--accent)}
+.line::placeholder{color:var(--faint)}
+.serif{font-family:var(--serif)}
+.big{font-size:36px;padding:8px 0 12px}
+label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:18px 0 0}
+.chips{display:flex;gap:8px;margin-top:14px}
+.chips button{background:none;border:1px solid var(--line);color:var(--dim);font-size:12px;letter-spacing:.06em;padding:7px 14px;border-radius:999px;cursor:pointer}
+.chips button.on{color:var(--ink);border-color:var(--accent)}
+
+/* the "notebook margin" down the left of every list */
+.list{list-style:none;margin:16px 0 0 24px;padding:0 20px 0 18px;border-left:1px solid rgba(205,184,146,.22)}
+.list li{padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.list .w{font-family:var(--serif);font-size:25px;line-height:1.15;word-break:break-word}
+.list .m{font-size:13px;color:var(--dim);margin-top:5px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.list .m.none{color:var(--faint);font-style:italic}
+.list li.empty{color:var(--dim);border:0;cursor:default;line-height:1.7;padding-top:20px}
+.list.tight{margin-left:0}
+
+.btn{font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:15px 22px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:#0d0d0f;cursor:pointer;font-weight:400}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.danger{color:var(--bad)}
+.btn.wide{width:100%;margin-top:24px}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:12px;margin-top:24px}
+.row .btn{flex:1}
+.link{background:none;border:0;color:var(--dim);font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;padding:6px 0}
+.note{font-size:13px;line-height:1.6;color:var(--dim);margin:14px 0 0}
+
+.mode{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:12px;color:var(--ink);cursor:pointer}
+.mode .t{display:block;font-family:var(--serif);font-size:26px}
+.mode .d{display:block;font-size:13px;color:var(--dim);margin-top:4px}
+.mode:disabled{opacity:.4;cursor:default}
+
+.qtop{display:flex;align-items:center;gap:14px;padding:6px 20px}
+.prog{flex:1;height:1px;background:var(--line)}
+.prog i{display:block;height:1px;background:var(--accent);transition:width .3s}
+.cnt{font-size:12px;color:var(--dim);letter-spacing:.1em}
+.qbody{padding:18px 20px}
+.card{min-height:240px;border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:28px 22px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;cursor:pointer}
+.card.sm{min-height:140px;cursor:default}
+.cw{font-family:var(--serif);font-size:46px;line-height:1.1;word-break:break-word}
+.card.sm .cw{font-size:38px}
+.tap{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-top:18px}
+.rule{width:28px;height:1px;background:var(--accent);margin:20px 0}
+.cm{font-size:16px;line-height:1.6}
+.cm.dim{color:var(--dim);font-size:14px;margin-top:10px}
+.opts{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.opt{text-align:left;font-size:15px;font-weight:300;line-height:1.5;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer}
+.opt.good{border-color:var(--good);color:var(--good)}
+.opt.bad{border-color:var(--bad);color:var(--bad)}
+.verdict{margin-top:18px;border-left:1px solid var(--accent);padding:2px 0 2px 14px}
+.verdict .vt{font-family:var(--serif);font-size:26px}
+.verdict.correct{border-color:var(--good)} .verdict.correct .vt{color:var(--good)}
+.verdict.wrong{border-color:var(--bad)} .verdict.wrong .vt{color:var(--bad)}
+.verdict p{font-size:14px;line-height:1.6;color:var(--dim);margin:6px 0}
+.verdict .ex{color:var(--ink);font-family:var(--serif);font-style:italic;font-size:18px}
+.score{font-family:var(--serif);font-size:88px;font-weight:300;text-align:center;margin-top:56px}
+.score span{color:var(--faint);font-size:40px}
+.center{text-align:center}
+
+.sheet{position:fixed;inset:0;display:none;z-index:10}
+.sheet.open{display:block}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.panel{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:#111114;border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:22px 22px calc(env(safe-area-inset-bottom) + 24px);max-height:88dvh;overflow:auto;animation:up .22s ease}
+@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.sh-title{font-family:var(--serif);font-size:26px}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 84px);transform:translateX(-50%);background:var(--ink);color:#0d0d0f;font-size:13px;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">Lex<i>i</i>con</div>
+    <button id="gear" aria-label="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </header>
+  <main id="main"></main>
+  <nav id="tabs">
+    <button data-v="words">Words</button>
+    <button data-v="add">Add</button>
+    <button data-v="quiz">Quiz</button>
+  </nav>
+</div>
+<div id="sheet" class="sheet"><div class="scrim" id="scrim"></div><div class="panel" id="sheetBody"></div></div>
+<div id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const now = () => Date.now();
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---------- storage ---------- */
+const LS = 'lexicon.v1', LSS = 'lexicon.settings.v1';
+const read = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+let items = read(LS, []);          // {id,w,m,t,u,b,r,x,d}  d=1 means deleted (kept so deletes sync)
+let cfg = read(LSS, { pw: '' });
+const live = () => items.filter(i => !i.d);
+const commit = () => { write(LS, items); scheduleSync(); };
+
+let view = 'words', filter = 'all', query = '', quiz = null;
+
+/* ---------- words ---------- */
+function addWord(w, m) {
+  w = (w || '').trim(); m = (m || '').trim();
+  if (!w) return 'empty';
+  const ex = live().find(i => i.w.toLowerCase() === w.toLowerCase());
+  if (ex) {
+    if (m && !ex.m) { ex.m = m; ex.u = now(); commit(); return 'filled'; }
+    return 'dupe';
+  }
+  items.push({ id: uid(), w, m, t: now(), u: now(), b: 0, r: 0, x: 0 });
+  commit();
+  return 'added';
+}
+
+function record(it, res) {
+  const t = items.find(i => i.id === it.id) || it;
+  if (res === 'right') { t.b = Math.min(5, (t.b || 0) + 1); t.r = (t.r || 0) + 1; }
+  else if (res === 'wrong') { t.b = 0; t.x = (t.x || 0) + 1; }
+  t.u = now();
+  commit();
+}
+
+/* ---------- toast + sheet ---------- */
+let tt;
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 1900); }
+function openSheet(html) { $('#sheetBody').innerHTML = html; $('#sheet').classList.add('open'); }
+function closeSheet() { $('#sheet').classList.remove('open'); }
+const sheetOpen = () => $('#sheet').classList.contains('open');
+$('#scrim').onclick = closeSheet;
+
+/* ---------- navigation ---------- */
+function setView(v) { quiz = null; view = v; render(); $('#main').scrollTop = 0; }
+function render() {
+  $('#app').classList.toggle('inquiz', !!quiz);
+  $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === view));
+  if (quiz) return renderQuiz();
+  ({ words: viewWords, add: viewAdd, quiz: viewQuiz })[view]();
+}
+$$('#tabs button').forEach(b => b.onclick = () => setView(b.dataset.v));
+$('#gear').onclick = settingsSheet;
+
+/* ---------- words view ---------- */
+function viewWords() {
+  const L = live(), miss = L.filter(i => !i.m).length;
+  $('#main').innerHTML = `
+    <section class="pad">
+      <div class="meta">${L.length} ${L.length === 1 ? 'word' : 'words'}${miss ? ` · ${miss} without meaning` : ''}</div>
+      <input id="q" class="line" type="search" placeholder="Search words or meanings" value="${esc(query)}" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div class="chips">
+        <button data-f="all" class="${filter === 'all' ? 'on' : ''}">All</button>
+        <button data-f="nomean" class="${filter === 'nomean' ? 'on' : ''}">No meaning</button>
+      </div>
+    </section>
+    <ul id="list" class="list"></ul>`;
+  $('#q').addEventListener('input', e => { query = e.target.value; fillList(); });
+  $$('.chips button').forEach(b => b.onclick = () => { filter = b.dataset.f; viewWords(); });
+  fillList();
+}
+
+function fillList() {
+  const ul = $('#list'); if (!ul) return;
+  const t = query.trim().toLowerCase();
+  let L = live().filter(i => filter === 'all' || !i.m);
+  if (t) L = L.filter(i => i.w.toLowerCase().includes(t) || (i.m || '').toLowerCase().includes(t));
+  L.sort((a, b) => b.t - a.t);
+  ul.innerHTML = L.length
+    ? L.map(i => `<li data-id="${i.id}"><div class="w">${esc(i.w)}</div><div class="m${i.m ? '' : ' none'}">${i.m ? esc(i.m) : 'no meaning yet'}</div></li>`).join('')
+    : `<li class="empty">${live().length ? 'No matches.' : 'Nothing here yet.<br>Tap Add to save your first word.'}</li>`;
+  $$('li[data-id]', ul).forEach(li => li.onclick = () => editSheet(li.dataset.id));
+}
+
+function editSheet(id) {
+  const it = items.find(i => i.id === id); if (!it) return;
+  openSheet(`
+    <div class="sh-title">Edit word</div>
+    <label>Word</label>
+    <input id="ew" class="line serif big" value="${esc(it.w)}" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <label>Meaning</label>
+    <textarea id="em" class="line" rows="4" placeholder="Meaning (optional)">${esc(it.m)}</textarea>
+    <div class="row"><button class="btn ghost danger" id="del">Delete</button><button class="btn" id="sv">Save</button></div>`);
+  let armed = false;
+  $('#del').onclick = e => {
+    if (!armed) { armed = true; e.target.textContent = 'Tap again'; return; }
+    const t = items.find(i => i.id === id); if (t) { t.d = 1; t.u = now(); commit(); }
+    closeSheet(); fillList(); viewWords(); toast('Deleted');
+  };
+  $('#sv').onclick = () => {
+    const w = $('#ew').value.trim(); if (!w) { toast('A word needs a word'); return; }
+    const t = items.find(i => i.id === id); if (!t) return;
+    t.w = w; t.m = $('#em').value.trim(); t.u = now(); commit();
+    closeSheet(); viewWords(); toast('Saved');
+  };
+}
+
+/* ---------- add view ---------- */
+function viewAdd() {
+  const recent = live().sort((a, b) => b.t - a.t).slice(0, 5);
+  $('#main').innerHTML = `
+    <section class="pad">
+      <div class="meta">New word</div>
+      <input id="nw" class="line serif big" placeholder="word" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <textarea id="nm" class="line" rows="4" placeholder="Meaning — optional, you can add it later"></textarea>
+      <button id="save" class="btn wide">Save word</button>
+      ${recent.length ? `<div class="meta gap">Recently added</div>
+      <ul class="list tight">${recent.map(i => `<li style="cursor:default"><div class="w">${esc(i.w)}</div><div class="m${i.m ? '' : ' none'}">${i.m ? esc(i.m) : 'no meaning yet'}</div></li>`).join('')}</ul>` : ''}
+    </section>`;
+  $('#nw').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#nm').focus(); } });
+  $('#save').onclick = () => {
+    const r = addWord($('#nw').value, $('#nm').value);
+    if (r === 'empty') { toast('Type a word first'); return; }
+    toast({ added: 'Saved', filled: 'Meaning added', dupe: 'Already in your dictionary' }[r]);
+    if (r !== 'dupe') { viewAdd(); $('#nw').focus(); }
+  };
+}
+
+/* ---------- quiz menu ---------- */
+function viewQuiz() {
+  const tot = live().length, E = live().filter(i => i.m).length;
+  const modes = [
+    ['flash', 'Flashcards', 'See the word, recall the meaning', 1],
+    ['mcq', 'Multiple choice', 'Pick the right meaning', 2],
+    ['sent', 'Use it in a sentence', 'Write one, get AI feedback', 1],
+  ];
+  $('#main').innerHTML = `
+    <section class="pad">
+      <div class="meta">${E} of ${tot} words ready to quiz</div>
+      ${modes.map(([k, t, d, n]) => `<button class="mode" data-m="${k}" ${E < n ? 'disabled' : ''}><span class="t">${t}</span><span class="d">${d}</span></button>`).join('')}
+      ${!tot ? '<p class="note">Add a few words first.</p>' : (E < tot ? '<p class="note">Words without a meaning stay out of quizzes until you add one.</p>' : '')}
+    </section>`;
+  $$('.mode').forEach(b => b.onclick = () => startQuiz(b.dataset.m));
+}
+
+function startQuiz(mode) {
+  const pool = live().filter(i => i.m)
+    .map(i => [(i.b || 0) + Math.random() * 3, i]).sort((a, b) => a[0] - b[0]).map(x => x[1]).slice(0, 10);
+  quiz = { mode, qs: pool.map(it => ({ it })), i: 0, right: 0, done: false };
+  if (mode === 'mcq') quiz.qs.forEach(q => q.opts = buildOpts(q.it));
+  render();
+}
+
+function buildOpts(it) {
+  const norm = s => s.trim().toLowerCase();
+  const others = shuffle(live().filter(i => i.m && i.id !== it.id && norm(i.m) !== norm(it.m)));
+  return shuffle([{ t: it.m, ok: true }, ...others.slice(0, 3).map(o => ({ t: o.m, ok: false }))]);
+}
+
+function renderQuiz() {
+  const q = quiz;
+  if (q.done) return renderResult();
+  const cur = q.qs[q.i];
+  $('#main').innerHTML = `
+    <div class="qtop"><button class="link" id="qx">Close</button><div class="prog"><i style="width:${(q.i / q.qs.length) * 100}%"></i></div><span class="cnt">${q.i + 1}/${q.qs.length}</span></div>
+    <section class="qbody" id="qb"></section>`;
+  $('#qx').onclick = () => { quiz = null; render(); };
+  ({ flash: qFlash, mcq: qMcq, sent: qSent })[q.mode](cur, $('#qb'));
+}
+
+function next() { quiz.i++; if (quiz.i >= quiz.qs.length) quiz.done = true; renderQuiz(); }
+const isLast = () => quiz.i + 1 >= quiz.qs.length;
+
+function qFlash(c, box) {
+  const show = rev => {
+    box.innerHTML = `
+      <div class="card" id="card" style="${rev ? 'cursor:default' : ''}">
+        <div class="cw">${esc(c.it.w)}</div>
+        ${rev ? `<div class="rule"></div><div class="cm">${esc(c.it.m)}</div>` : '<div class="tap">tap to reveal</div>'}
+      </div>
+      ${rev ? '<div class="row"><button class="btn ghost" id="no">Missed</button><button class="btn" id="yes">Knew it</button></div>' : ''}`;
+    if (!rev) $('#card').onclick = () => show(true);
+    else {
+      $('#no').onclick = () => { record(c.it, 'wrong'); next(); };
+      $('#yes').onclick = () => { record(c.it, 'right'); quiz.right++; next(); };
+    }
+  };
+  show(false);
+}
+
+function qMcq(c, box) {
+  box.innerHTML = `
+    <div class="card" style="cursor:default"><div class="cw">${esc(c.it.w)}</div><div class="tap">choose the meaning</div></div>
+    <div class="opts">${c.opts.map((o, i) => `<button class="opt" data-i="${i}">${esc(o.t)}</button>`).join('')}</div>
+    <div id="nx"></div>`;
+  let locked = false;
+  $$('.opt', box).forEach(b => b.onclick = () => {
+    if (locked) return; locked = true;
+    const o = c.opts[+b.dataset.i];
+    $$('.opt', box).forEach((x, i) => { if (c.opts[i].ok) x.classList.add('good'); });
+    if (!o.ok) b.classList.add('bad');
+    record(c.it, o.ok ? 'right' : 'wrong'); if (o.ok) quiz.right++;
+    $('#nx').innerHTML = `<button class="btn wide" id="go">${isLast() ? 'Finish' : 'Next'}</button>`;
+    $('#go').onclick = next;
+  });
+}
+
+function qSent(c, box) {
+  box.innerHTML = `
+    <div class="card sm">
+      <div class="cw">${esc(c.it.w)}</div>
+      <button class="link" id="peek" style="margin-top:12px">peek at meaning</button>
+      <div class="cm dim" id="pk" hidden>${esc(c.it.m)}</div>
+    </div>
+    <textarea id="sent" class="line" rows="4" placeholder="Use it in a sentence…" style="margin-top:14px"></textarea>
+    <div id="res"></div>
+    <div id="act" class="row"><button class="btn ghost" id="skip">Skip</button><button class="btn" id="chk">Check</button></div>`;
+  $('#peek').onclick = () => { $('#pk').hidden = false; $('#peek').hidden = true; };
+  $('#skip').onclick = next;
+  const finish = () => { $('#act').innerHTML = `<button class="btn wide" style="margin-top:0" id="go">${isLast() ? 'Finish' : 'Next'}</button>`; $('#go').onclick = next; };
+
+  $('#chk').onclick = async () => {
+    const s = $('#sent').value.trim();
+    if (s.length < 3) { toast('Write a sentence first'); return; }
+    const b = $('#chk'); b.disabled = true; b.textContent = 'Checking…';
+    try {
+      if (!cfg.pw) { const e = new Error('nopw'); e.code = 'nopw'; throw e; }
+      const r = await api('dict_check', { word: c.it.w, meaning: c.it.m, sentence: s });
+      const v = ['correct', 'almost', 'wrong'].includes(r.verdict) ? r.verdict : 'almost';
+      record(c.it, v === 'correct' ? 'right' : v === 'wrong' ? 'wrong' : 'close');
+      if (v === 'correct') quiz.right++;
+      $('#sent').readOnly = true;
+      $('#res').innerHTML = `<div class="verdict ${v}"><div class="vt">${{ correct: 'Nailed it', almost: 'Close', wrong: 'Not quite' }[v]}</div><p>${esc(r.feedback)}</p>${r.better ? `<p class="ex">${esc(r.better)}</p>` : ''}</div>`;
+      finish();
+    } catch (e) {
+      const why = e.code === 'nopw' ? 'Add your password in Settings to switch on AI feedback.'
+        : e.code === 401 ? 'That password didn’t match — check Settings.'
+        : 'Couldn’t reach the AI checker right now.';
+      $('#res').innerHTML = `<div class="verdict"><p>${why} Mark it yourself:</p></div>`;
+      $('#act').innerHTML = '<button class="btn ghost" id="m0">Not sure</button><button class="btn" id="m1">Used it right</button>';
+      $('#m0').onclick = () => { record(c.it, 'wrong'); next(); };
+      $('#m1').onclick = () => { record(c.it, 'right'); quiz.right++; next(); };
+    }
+  };
+}
+
+function renderResult() {
+  const q = quiz, n = q.qs.length;
+  const msg = q.right === n ? 'Clean sweep.' : q.right >= n * 0.6 ? 'Solid. The misses will come back sooner.' : 'Those will keep showing up until they stick.';
+  $('#main').innerHTML = `
+    <section class="qbody center">
+      <div class="score">${q.right}<span>/${n}</span></div>
+      <p class="note">${msg}</p>
+      <div class="row"><button class="btn ghost" id="done">Done</button><button class="btn" id="again">Go again</button></div>
+    </section>`;
+  $('#done').onclick = () => { quiz = null; view = 'quiz'; render(); };
+  $('#again').onclick = () => startQuiz(q.mode);
+}
+
+/* ---------- server: sync + AI ---------- */
+async function api(name, body) {
+  const r = await fetch('/api/' + name, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-dict-password': encodeURIComponent(cfg.pw || '') },
+    body: JSON.stringify(body),
+  });
+  if (r.status === 401) { const e = new Error('auth'); e.code = 401; throw e; }
+  if (!r.ok) throw new Error('http ' + r.status);
+  return r.json();
+}
+
+function merge(a, b) {
+  const m = new Map();
+  for (const i of [...a, ...b]) { const o = m.get(i.id); if (!o || (i.u || 0) > (o.u || 0)) m.set(i.id, i); }
+  return [...m.values()];
+}
+
+let syncMsg = '', syncT = null, syncing = false;
+const paintSync = () => { const e = $('#syncmsg'); if (e) e.textContent = syncMsg; };
+function scheduleSync() { clearTimeout(syncT); syncT = setTimeout(() => sync(false), 1500); }
+async function sync(manual) {
+  if (!cfg.pw) { if (manual) toast('Add your password first'); return; }
+  if (syncing) return;
+  if (!navigator.onLine) { syncMsg = 'Offline — will sync later'; paintSync(); return; }
+  syncing = true; syncMsg = 'Syncing…'; paintSync();
+  try {
+    const r = await api('dict_sync', { items });
+    items = merge(items, r.items || []); write(LS, items);
+    syncMsg = 'Synced ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    if (!quiz && view === 'words' && !sheetOpen()) fillList();
+  } catch (e) {
+    syncMsg = e.code === 401 ? 'Password didn’t match' : 'Couldn’t sync — will retry';
+  }
+  syncing = false; paintSync();
+}
+addEventListener('online', () => sync(false));
+document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(false); });
+
+/* ---------- settings ---------- */
+function settingsSheet() {
+  openSheet(`
+    <div class="sh-title">Settings</div>
+    <label>Password</label>
+    <input id="pw" class="line" type="password" placeholder="Same one you use for Jarvis" value="${esc(cfg.pw)}" autocomplete="off">
+    <p class="note" id="syncmsg">${esc(syncMsg || 'Needed for cloud sync and AI sentence feedback.')}</p>
+    <div class="row"><button class="btn ghost" id="bk">Backup</button><button class="btn" id="sn">Save &amp; sync</button></div>`);
+  $('#sn').onclick = () => { cfg.pw = $('#pw').value.trim(); write(LSS, cfg); sync(true); };
+  $('#bk').onclick = () => {
+    const blob = new Blob([JSON.stringify(live(), null, 1)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lexicon-backup.json'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  };
+}
+
+/* ---------- go ---------- */
+render();
+sync(false);
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+})();
+</script>
+</body>
+</html>
