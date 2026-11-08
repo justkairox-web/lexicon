@@ -440,17 +440,47 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) sync
 
 /* ---------- settings ---------- */
 function settingsSheet() {
+  const signedIn = !!cfg.pw;
+  const n = live().length;
   openSheet(`
     <div class="sh-title">Settings</div>
     <label>Password</label>
-    <input id="pw" class="line" type="password" placeholder="Same one you use for Jarvis" value="${esc(cfg.pw)}" autocomplete="off">
-    <p class="note" id="syncmsg">${esc(syncMsg || 'Needed for cloud sync and AI sentence feedback.')}</p>
-    <div class="row"><button class="btn ghost" id="bk">Backup</button><button class="btn" id="sn">Save &amp; sync</button></div>`);
+    <input id="pw" class="line" type="password" placeholder="Your Lexicon password" value="${esc(cfg.pw)}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <p class="note" id="syncmsg">${esc(syncMsg || (signedIn ? 'Ready to sync.' : 'Needed for cloud sync and AI sentence feedback.'))}</p>
+    <div class="row"><button class="btn" id="sn">Save &amp; sync</button></div>
+    <label>Your words</label>
+    <p class="note">${n} word${n === 1 ? '' : 's'} on this phone. Backup saves them to a file; restore adds words from a backup file without deleting anything.</p>
+    <div class="row"><button class="btn ghost" id="bk">Backup</button><button class="btn ghost" id="rs">Restore</button></div>
+    <input id="rsf" type="file" accept="application/json,.json" hidden>
+    ${signedIn ? '<label>Account</label><p class="note">Log out removes the password from this phone. Your words stay safe in the cloud and on this phone.</p><div class="row"><button class="btn ghost danger" id="lo">Log out</button></div>' : ''}`);
+
   $('#sn').onclick = () => { cfg.pw = $('#pw').value.trim(); write(LSS, cfg); sync(true); };
+
   $('#bk').onclick = () => {
     const blob = new Blob([JSON.stringify(live(), null, 1)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lexicon-backup.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  };
+
+  $('#rs').onclick = () => $('#rsf').click();
+  $('#rsf').onchange = async e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    try {
+      const data = JSON.parse(await f.text());
+      const incoming = (Array.isArray(data) ? data : []).filter(i => i && typeof i.id === 'string' && typeof i.w === 'string').slice(0, 5000);
+      if (!incoming.length) { toast('No words found in that file'); return; }
+      const before = live().length;
+      items = merge(items, incoming); commit();
+      const added = live().length - before;
+      toast(added > 0 ? 'Restored ' + added + ' word' + (added === 1 ? '' : 's') : 'Nothing new to restore');
+      settingsSheet();
+    } catch { toast('That file could not be read'); }
+  };
+
+  const lo = $('#lo');
+  if (lo) lo.onclick = () => {
+    cfg = { pw: '' }; write(LSS, cfg); syncMsg = '';
+    toast('Logged out'); settingsSheet();
   };
 }
 
